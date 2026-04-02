@@ -38,7 +38,7 @@ class Triangle : public Object {
         this->refl = refl;
         auto edge0 = points[0] - points[1];
         auto edge1 = points[2] - points[1];
-        auto normal = edge0.cross(edge1).normalized();
+        auto normal = edge1.cross(edge0).normalized();
         this->normal = normal;
         this->d = abs(normal.dot(points[0]));
     }
@@ -49,19 +49,21 @@ class Triangle : public Object {
     }
 
     std::unique_ptr<Vec3> getIntersection(const Ray& ray) {
-        auto pn = normal;
-        auto vd = pn.dot(ray.direction());
+        auto vd = normal.dot(ray.direction());
 
         if (vd == 0) {
             return nullptr;
         }
 
-        auto vo = -(pn.dot(ray.origin()) + d);
+        auto vo = -(normal.dot(ray.origin()) + d);
         double t = vo / vd;
         if (t < 0) {
             return nullptr;
         }
-        auto intersection = ray.origin() + ray.direction() * t;
+        if (vd > 0) {
+            normal = -normal;
+        }
+        auto intersection = ray.origin() + (ray.direction() * t);
 
         auto edge0 = points[1] - points[0];
         auto edge1 = points[2] - points[1];
@@ -74,7 +76,7 @@ class Triangle : public Object {
         if (normal.dot(edge0.cross(c0)) > 0 &&
             normal.dot(edge1.cross(c1)) > 0 &&
             normal.dot(edge2.cross(c2)) > 0) {
-            return make_unique<Vec3>(intersection);
+            return std::make_unique<Vec3>(intersection);
         }
         return nullptr;
     }

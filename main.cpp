@@ -36,6 +36,14 @@ Vec3 readVector(std::istream& inFile) {
     return Vec3(x, y, z);
 }
 
+Vec3 readVectorNoPrefix(std::istream& inFile) {
+    double x;
+    double y;
+    double z;
+    inFile >> x >> y >> z;
+    return Vec3(x, y, z);
+}
+
 double readValue(std::istream& inFile) {
     std::string str;
     inFile >> str;
@@ -45,8 +53,20 @@ double readValue(std::istream& inFile) {
 }
 
 unique_ptr<Object> readObject(std::istream& inFile, string objectType) {
-    Vec3 center = readVector(inFile);
-    double r = readValue(inFile);
+    Vec3 center;
+    double radius;
+    Point3 p0;
+    Point3 p1;
+    Point3 p2;
+
+    if (objectType == "Sphere") {
+        center = readVector(inFile);
+        radius = readValue(inFile);
+    } else if (objectType == "Triangle") {
+        p0 = readVectorNoPrefix(inFile);
+        p1 = readVectorNoPrefix(inFile);
+        p2 = readVectorNoPrefix(inFile);
+    }
     double kd = readValue(inFile);
     double ks = readValue(inFile);
     double ka = readValue(inFile);
@@ -54,7 +74,14 @@ unique_ptr<Object> readObject(std::istream& inFile, string objectType) {
     Vec3 os = readVector(inFile);
     double kgls = readValue(inFile);
     double refl = readValue(inFile);
-    return make_unique<Sphere>(center, r, od, os, kd, ks, ka, kgls, refl);
+    if (objectType == "Sphere") {
+        return std::make_unique<Sphere>(center, radius, od, os, kd, ks, ka, kgls, refl);
+    } else if (objectType == "Triangle") {
+        Vec3 points[3] = {p0, p1, p2};
+        return std::make_unique<Triangle>(points, od, os, kd, ks, ka, kgls, refl);
+    } else {
+        throw std::runtime_error("You're file is broken, mate.");
+    }
 }
 
 unique_ptr<Light> readLight(std::istream& inFile, string lightType) {
@@ -70,6 +97,12 @@ Color getAmbientIllumination(const Ray& ray, const shared_ptr<Object>& object, c
 
 Vec3 getReflection(const Vec3& directionToLight, const Vec3& normal) {
     return (2 * normal * (directionToLight.dot(normal))) - directionToLight;
+}
+
+bool is_obscured(const Ray& ray, const shared_ptr<Light>& light) {
+    shared_ptr<Vec3> intersection = nullptr;
+
+    return false;
 }
 
 Color getDiffuseIllumination(const Ray& ray, const shared_ptr<Object>& object, const Vec3& intersection, const std::vector<shared_ptr<Light>>& lights) {
@@ -167,7 +200,7 @@ int main(int argc, char* argv[]) {
         if (input == "#") {
             string line;
             std::getline(inFile, line);
-        } else if (input == "Sphere") {
+        } else if (input == "Sphere" || input == "Triangle") {
             objects.push_back(readObject(inFile, input));
         } else if (input == "PointLight") {
             lights.push_back(readLight(inFile, input));
@@ -178,7 +211,7 @@ int main(int argc, char* argv[]) {
 
     double aspect_ratio = 1.0 / 1.0;
 
-    int image_width = 800;  // THIS IS THE IMAGE WIDTH
+    int image_width = 500;  // THIS IS THE IMAGE WIDTH
 
     int image_height = int(image_width / aspect_ratio);
     if (image_height < 1) {
@@ -219,6 +252,7 @@ int main(int argc, char* argv[]) {
 
             // Find the closest object in this path.
             for (auto& object : objects) {
+                auto shape = dynamic_cast<Triangle*>(object.get());
                 intersection = object->getIntersection(ray);
                 if (intersection) {
                     double length = (*intersection - lookFrom).length_squared();
