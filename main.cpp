@@ -106,13 +106,8 @@ unique_ptr<Light> readLight(std::istream& inFile, string lightType) {
     return make_unique<PointLight>(position, color);
 }
 
-Color getAmbientIllumination(const Ray& ray, const shared_ptr<Object>& object, const Color& ambientLight) {
-    // return Color(0, 0, 0);
-    return object->ka * ambientLight * object->Od;
-}
-
 Vec3 getReflection(const Vec3& directionToLight, const Vec3& normal) {
-    return (2 * normal * (directionToLight.dot(normal))) - directionToLight;
+    return directionToLight - (2 * normal * (directionToLight.dot(normal)));
 }
 
 bool is_obscured(const Vec3& position, const shared_ptr<Light>& light) {
@@ -132,50 +127,76 @@ bool is_obscured(const Vec3& position, const shared_ptr<Light>& light) {
     return false;
 }
 
-Color getDiffuseIllumination(const Ray& ray, const shared_ptr<Object>& object, const Vec3& intersection) {
-    // return Color(0, 0, 0);
-    Color totalDiffuse = Color(0, 0, 0);
+auto find_closest_object(const Ray& ray) {
+    shared_ptr<Object> closestObject;
+    double distance = HUGE_VAL;
+    for (auto& object : objects) {
+        auto intersection = object->getIntersection(ray);
+        if (intersection) {
+            double length = (*intersection - ray.origin()).length_squared();
+            if (length < distance) {
+                distance = length;
+                closestObject = object;
+            }
+        }
+    }
+    return closestObject;
+}
 
-    auto normal = object->surface_normal(intersection);
+Color getIllumination(const Ray& ray, const Color& ambientLight, const Color& backgroundColor, int limitRecursion) {
+    if (limitRecursion <= 0) {
+        return Color(0, 0, 0);
+    }
+    auto object = find_closest_object(ray);
+    if (!object) {
+        return backgroundColor;
+    }
+    auto intersection = object.get()->getIntersection(ray);
+    if (!intersection) {
+        throw(std::runtime_error("This shouldn't be possible. You can't intersect with an object to then not find an intersection!"));
+    }
+
+    Color totalDiffuse(0, 0, 0);
+    Color totalSpecular(0, 0, 0);
+    auto normal = object->surface_normal(*intersection);
 
     for (auto& light : lights) {
-        if (is_obscured(intersection, light)) {
+        if (is_obscured(*intersection, light)) {
             continue;
         }
-        double dot_result = normal.dot(light->getDirectionToLight(intersection));
+        // Diffuse portion
+        double dot_result = normal.dot(light->getDirectionToLight(*intersection));
         if (dot_result < 0) {
             dot_result = 0;
         }
         totalDiffuse += object->kd * light->color * object->Od * dot_result;
-    }
 
-    return totalDiffuse;
-}
-
-Color getSpecularIllumination(const Ray& ray, const shared_ptr<Object>& object, const Vec3& intersection) {
-    // return Color(0, 0, 0);
-    Color totalSpecular(0, 0, 0);
-    auto normal = object->surface_normal(intersection);
-
-    for (auto& light : lights) {
-        if (is_obscured(intersection, light)) {
-            continue;
-        }
-        auto reflection = getReflection(light->getDirectionToLight(intersection), normal);
-        double dot_result = (-ray.direction()).dot(reflection);
+        // Specular portion
+        auto specularReflection = -getReflection(light->getDirectionToLight(*intersection), normal);
+        dot_result = (-ray.direction()).dot(specularReflection);
         if (dot_result < 0) {
             dot_result = 0.0;
         }
         totalSpecular += object->ks * light->color * object->Os * std::pow(dot_result, object->kgls);
     }
 
-    return totalSpecular;
-}
+    // Ambient portion
+    Color ambient = object->ka * ambientLight * object->Od;
 
-Color getIllumination(const Ray& ray, const shared_ptr<Object>& object, const Color& ambientLight, const Vec3& intersection) {
-    return getAmbientIllumination(ray, object, ambientLight) +
-           getDiffuseIllumination(ray, object, intersection) +
-           getSpecularIllumination(ray, object, intersection);
+    Color totalIllumination = ambient + totalSpecular + totalDiffuse;
+
+    // If negligible, stop recursion and just return the regular illumination.
+    if (totalIllumination.x() < 0.001 && totalIllumination.y() < 0.001 && totalIllumination.z() < 0.001) {
+        return totalIllumination;
+    }
+
+    // Reflective portion
+    auto reflection = getReflection(ray.direction(), normal);
+    Ray newRay(*intersection, reflection);
+    Color reflectionColor = object.get()->refl * getIllumination(newRay, ambientLight, backgroundColor, limitRecursion - 1);
+
+    // Total lighting plus recursive step.
+    return ambient + totalSpecular + totalDiffuse + reflectionColor;
 }
 
 int main(int argc, char* argv[]) {
@@ -276,32 +297,9 @@ int main(int argc, char* argv[]) {
             auto ray_direction = pixel_center - lookFrom;
             Ray ray(lookFrom, ray_direction);
 
-            double distance = 1000000000000.0;
-            shared_ptr<Object> closestObject = nullptr;
-            unique_ptr<Vec3> intersection = nullptr;
-
-            // Find the closest object in this path.
-            for (auto& object : objects) {
-                auto shape = dynamic_cast<Triangle*>(object.get());
-                intersection = object->getIntersection(ray);
-                if (intersection) {
-                    double length = (*intersection - lookFrom).length_squared();
-                    if (length < distance) {
-                        distance = length;
-                        closestObject = object;
-                    }
-                }
-            }
-            if (closestObject) {
-                intersection = closestObject->getIntersection(ray);
-            }
-            if (!intersection) {
-                print_color(outFile, backgroundColor);
-            } else {
-                Color pixelColor = getIllumination(ray, closestObject, ambientLight, *intersection);
-                Color pixelColorClamped = pixelColor.clamp(0, 1);
-                print_color(outFile, pixelColorClamped);
-            }
+            Color pixelColor = getIllumination(ray, ambientLight, backgroundColor, 10);
+            Color pixelColorClamped = pixelColor.clamp(0, 1);
+            print_color(outFile, pixelColorClamped);
         }
     }
 
