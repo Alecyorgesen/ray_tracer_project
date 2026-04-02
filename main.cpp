@@ -1,9 +1,11 @@
 #include <math.h>
 
+#include <algorithm>
 #include <cmath>
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -19,6 +21,9 @@ using std::shared_ptr;
 using std::string;
 using std::unique_ptr;
 
+std::vector<shared_ptr<Object>> objects;
+std::vector<shared_ptr<Light>> lights;
+
 Color ray_color(const Ray& r) {
     Vec3 unit_direction = r.direction().normalized();
     auto a = 0.5 * (unit_direction.y() + 1.0);
@@ -26,21 +31,32 @@ Color ray_color(const Ray& r) {
 }
 
 Vec3 readVector(std::istream& inFile) {
+    string line = "";
+    while (line == "") {
+        std::getline(inFile, line);
+    }
+    std::replace(line.begin(), line.end(), ',', ' ');
+    std::stringstream ss(line);
     double x;
     double y;
     double z;
     std::string string;
-    inFile >> string;
-    // std::cerr << string << '\n';
-    inFile >> x >> y >> z;
+    ss >> string;
+    ss >> x >> y >> z;
     return Vec3(x, y, z);
 }
 
 Vec3 readVectorNoPrefix(std::istream& inFile) {
+    string line;
+    while (line == "") {
+        std::getline(inFile, line);
+    }
+    std::replace(line.begin(), line.end(), ',', ' ');
+    std::stringstream ss(line);
     double x;
     double y;
     double z;
-    inFile >> x >> y >> z;
+    ss >> x >> y >> z;
     return Vec3(x, y, z);
 }
 
@@ -99,19 +115,33 @@ Vec3 getReflection(const Vec3& directionToLight, const Vec3& normal) {
     return (2 * normal * (directionToLight.dot(normal))) - directionToLight;
 }
 
-bool is_obscured(const Ray& ray, const shared_ptr<Light>& light) {
+bool is_obscured(const Vec3& position, const shared_ptr<Light>& light) {
     shared_ptr<Vec3> intersection = nullptr;
+    double distanceToLight = light.get()->getDistanceToLight(position);
 
+    for (auto object : objects) {
+        Ray ray(position, light.get()->getDirectionToLight(position));
+        intersection = object.get()->getIntersection(ray);
+        if (intersection) {
+            double distanceToObject = (*intersection - position).length();
+            if (distanceToObject > 0.1 && distanceToObject < distanceToLight) {
+                return true;
+            }
+        }
+    }
     return false;
 }
 
-Color getDiffuseIllumination(const Ray& ray, const shared_ptr<Object>& object, const Vec3& intersection, const std::vector<shared_ptr<Light>>& lights) {
+Color getDiffuseIllumination(const Ray& ray, const shared_ptr<Object>& object, const Vec3& intersection) {
     // return Color(0, 0, 0);
     Color totalDiffuse = Color(0, 0, 0);
 
     auto normal = object->surface_normal(intersection);
 
     for (auto& light : lights) {
+        if (is_obscured(intersection, light)) {
+            continue;
+        }
         double dot_result = normal.dot(light->getDirectionToLight(intersection));
         if (dot_result < 0) {
             dot_result = 0;
@@ -122,12 +152,15 @@ Color getDiffuseIllumination(const Ray& ray, const shared_ptr<Object>& object, c
     return totalDiffuse;
 }
 
-Color getSpecularIllumination(const Ray& ray, const shared_ptr<Object>& object, const Vec3& intersection, const std::vector<shared_ptr<Light>>& lights) {
+Color getSpecularIllumination(const Ray& ray, const shared_ptr<Object>& object, const Vec3& intersection) {
     // return Color(0, 0, 0);
     Color totalSpecular(0, 0, 0);
     auto normal = object->surface_normal(intersection);
 
     for (auto& light : lights) {
+        if (is_obscured(intersection, light)) {
+            continue;
+        }
         auto reflection = getReflection(light->getDirectionToLight(intersection), normal);
         double dot_result = (-ray.direction()).dot(reflection);
         if (dot_result < 0) {
@@ -139,10 +172,10 @@ Color getSpecularIllumination(const Ray& ray, const shared_ptr<Object>& object, 
     return totalSpecular;
 }
 
-Color getIllumination(const Ray& ray, const shared_ptr<Object>& object, const std::vector<shared_ptr<Light>>& lights, const Color& ambientLight, const Vec3& intersection) {
+Color getIllumination(const Ray& ray, const shared_ptr<Object>& object, const Color& ambientLight, const Vec3& intersection) {
     return getAmbientIllumination(ray, object, ambientLight) +
-           getDiffuseIllumination(ray, object, intersection, lights) +
-           getSpecularIllumination(ray, object, intersection, lights);
+           getDiffuseIllumination(ray, object, intersection) +
+           getSpecularIllumination(ray, object, intersection);
 }
 
 int main(int argc, char* argv[]) {
@@ -188,9 +221,6 @@ int main(int argc, char* argv[]) {
     Color lightColor = readVector(inFile);
     Color ambientLight = readVector(inFile);
     Color backgroundColor = readVector(inFile);
-
-    std::vector<shared_ptr<Object>> objects;
-    std::vector<shared_ptr<Light>> lights;
 
     shared_ptr<Light> directionLight = make_shared<DirectionLight>(directionToLight, lightColor);
     lights.push_back(directionLight);
@@ -268,7 +298,7 @@ int main(int argc, char* argv[]) {
             if (!intersection) {
                 print_color(outFile, backgroundColor);
             } else {
-                Color pixelColor = getIllumination(ray, closestObject, lights, ambientLight, *intersection);
+                Color pixelColor = getIllumination(ray, closestObject, ambientLight, *intersection);
                 Color pixelColorClamped = pixelColor.clamp(0, 1);
                 print_color(outFile, pixelColorClamped);
             }

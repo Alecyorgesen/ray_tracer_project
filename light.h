@@ -11,6 +11,7 @@ class Light {
    public:
     Color color;
     virtual Vec3 getDirectionToLight(Point3 intersection) = 0;
+    virtual double getDistanceToLight(Point3 position) = 0;
 };
 
 class DirectionLight : public Light {
@@ -23,6 +24,7 @@ class DirectionLight : public Light {
     }
 
     Vec3 getDirectionToLight(Point3 intersection) { return directionToLight; }
+    double getDistanceToLight(Point3 position) { return HUGE_VAL; }
 };
 
 class PointLight : public Light {
@@ -37,5 +39,9 @@ class PointLight : public Light {
     Vec3 getDirectionToLight(Point3 intersection) {
         auto directionToLight = position - intersection;
         return directionToLight.normalized();
+    }
+
+    double getDistanceToLight(Point3 position) {
+        return (this->position - position).length();
     }
 };

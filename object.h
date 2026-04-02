@@ -60,9 +60,9 @@ class Triangle : public Object {
         if (t < 0) {
             return nullptr;
         }
-        if (vd > 0) {
-            normal = -normal;
-        }
+        // if (vd > 0) {
+        //     normal = -normal;
+        // }
         auto intersection = ray.origin() + (ray.direction() * t);
 
         auto edge0 = points[1] - points[0];
