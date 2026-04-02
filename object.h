@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include "ray.h"
 #include "vec3.h"
@@ -15,6 +16,68 @@ class Object {
     double ks;
     double ka;
     double kgls;
+    double refl;
+};
+
+class Triangle : public Object {
+   public:
+    Point3 points[3];
+    Vec3 normal;
+    double d;
+
+    Triangle(Point3 points[], Vec3& Od, Vec3& Os, double kd, double ks, double ka, double kgls, double refl) {
+        this->points[0] = points[0];
+        this->points[1] = points[1];
+        this->points[2] = points[2];
+        this->Od = Od;
+        this->Os = Os;
+        this->kd = kd;
+        this->ks = ks;
+        this->ka = ka;
+        this->kgls = kgls;
+        this->refl = refl;
+        auto edge0 = points[0] - points[1];
+        auto edge1 = points[2] - points[1];
+        auto normal = edge0.cross(edge1).normalized();
+        this->normal = normal;
+        this->d = abs(normal.dot(points[0]));
+    }
+
+    // This will return the same normal everytime
+    Vec3 surface_normal(const Vec3& intersection) {
+        return this->normal;
+    }
+
+    std::unique_ptr<Vec3> getIntersection(const Ray& ray) {
+        auto pn = normal;
+        auto vd = pn.dot(ray.direction());
+
+        if (vd == 0) {
+            return nullptr;
+        }
+
+        auto vo = -(pn.dot(ray.origin()) + d);
+        double t = vo / vd;
+        if (t < 0) {
+            return nullptr;
+        }
+        auto intersection = ray.origin() + ray.direction() * t;
+
+        auto edge0 = points[1] - points[0];
+        auto edge1 = points[2] - points[1];
+        auto edge2 = points[0] - points[2];
+
+        auto c0 = intersection - points[0];
+        auto c1 = intersection - points[1];
+        auto c2 = intersection - points[2];
+
+        if (normal.dot(edge0.cross(c0)) > 0 &&
+            normal.dot(edge1.cross(c1)) > 0 &&
+            normal.dot(edge2.cross(c2)) > 0) {
+            return make_unique<Vec3>(intersection);
+        }
+        return nullptr;
+    }
 };
 
 class Sphere : public Object {
@@ -22,7 +85,7 @@ class Sphere : public Object {
     Vec3 center;
     double radius;
 
-    Sphere(Vec3& center, double radius, Vec3& Od, Vec3& Os, double kd, double ks, double ka, double kgls) {
+    Sphere(Vec3& center, double radius, Vec3& Od, Vec3& Os, double kd, double ks, double ka, double kgls, double refl) {
         this->center = center;
         this->radius = radius;
         this->Od = Od;
@@ -31,6 +94,7 @@ class Sphere : public Object {
         this->ks = ks;
         this->ka = ka;
         this->kgls = kgls;
+        this->refl = refl;
     }
 
     Vec3 surface_normal(const Vec3& point_on_sphere) {

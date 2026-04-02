@@ -53,7 +53,8 @@ unique_ptr<Object> readObject(std::istream& inFile, string objectType) {
     Vec3 od = readVector(inFile);
     Vec3 os = readVector(inFile);
     double kgls = readValue(inFile);
-    return make_unique<Sphere>(center, r, od, os, kd, ks, ka, kgls);
+    double refl = readValue(inFile);
+    return make_unique<Sphere>(center, r, od, os, kd, ks, ka, kgls, refl);
 }
 
 unique_ptr<Light> readLight(std::istream& inFile, string lightType) {
