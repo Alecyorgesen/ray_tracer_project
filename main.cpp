@@ -110,16 +110,19 @@ Vec3 getReflection(const Vec3& directionToLight, const Vec3& normal) {
     return directionToLight - (2 * normal * (directionToLight.dot(normal)));
 }
 
-bool is_obscured(const Vec3& position, const shared_ptr<Light>& light) {
+bool is_obscured(const shared_ptr<Object>& fromObject, const Vec3& position, const shared_ptr<Light>& light) {
     shared_ptr<Vec3> intersection = nullptr;
     double distanceToLight = light.get()->getDistanceToLight(position);
 
     for (auto object : objects) {
+        if (object.get() == fromObject.get()) {
+            continue;
+        }
         Ray ray(position, light.get()->getDirectionToLight(position));
         intersection = object.get()->getIntersection(ray);
         if (intersection) {
             double distanceToObject = (*intersection - position).length();
-            if (distanceToObject > 0.1 && distanceToObject < distanceToLight) {
+            if (distanceToObject > 0.0001 && distanceToObject < distanceToLight) {
                 return true;
             }
         }
@@ -158,10 +161,10 @@ Color getIllumination(const Ray& ray, const Color& ambientLight, const Color& ba
 
     Color totalDiffuse(0, 0, 0);
     Color totalSpecular(0, 0, 0);
-    auto normal = object->surface_normal(*intersection);
+    auto normal = object->surface_normal(*intersection, ray.direction());
 
     for (auto& light : lights) {
-        if (is_obscured(*intersection, light)) {
+        if (is_obscured(object, *intersection, light)) {
             continue;
         }
         // Diffuse portion
@@ -186,13 +189,14 @@ Color getIllumination(const Ray& ray, const Color& ambientLight, const Color& ba
     Color totalIllumination = ambient + totalSpecular + totalDiffuse;
 
     // If negligible, stop recursion and just return the regular illumination.
-    if (totalIllumination.x() < 0.001 && totalIllumination.y() < 0.001 && totalIllumination.z() < 0.001) {
-        return totalIllumination;
-    }
+    // if (totalIllumination.x() < 0.00000001 && totalIllumination.y() < 0.00000001 && totalIllumination.z() < 0.00000001) {
+    //     return totalIllumination;
+    // }
 
     // Reflective portion
     auto reflection = getReflection(ray.direction(), normal);
-    Ray newRay(*intersection, reflection);
+    // Move the insection point away from the object the tiniest bit so as to not hit itself with the next ray cast.
+    Ray newRay(*intersection + (reflection * 0.00000001), reflection);
     Color reflectionColor = object.get()->refl * getIllumination(newRay, ambientLight, backgroundColor, limitRecursion - 1);
 
     // Total lighting plus recursive step.
@@ -262,7 +266,7 @@ int main(int argc, char* argv[]) {
 
     double aspect_ratio = 1.0 / 1.0;
 
-    int image_width = 500;  // THIS IS THE IMAGE WIDTH
+    int image_width = 700;  // THIS IS THE IMAGE WIDTH
 
     int image_height = int(image_width / aspect_ratio);
     if (image_height < 1) {

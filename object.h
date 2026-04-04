@@ -9,7 +9,7 @@
 class Object {
    public:
     virtual std::unique_ptr<Vec3> getIntersection(const Ray& ray) = 0;
-    virtual Vec3 surface_normal(const Vec3& intersection) = 0;
+    virtual Vec3 surface_normal(const Vec3& intersection, const Vec3& direction) = 0;
     Vec3 Od;
     Vec3 Os;
     double kd;
@@ -40,18 +40,22 @@ class Triangle : public Object {
         auto edge1 = points[2] - points[1];
         auto normal = edge1.cross(edge0).normalized();
         this->normal = normal;
-        this->d = abs(normal.dot(points[0]));
+        this->d = -normal.dot(points[0]);
     }
 
-    // This will return the same normal everytime
-    Vec3 surface_normal(const Vec3& intersection) {
-        return this->normal;
+    Vec3 surface_normal(const Vec3& intersection, const Vec3& direction) {
+        double dot_result = normal.dot(direction);
+        if (dot_result < 0) {
+            return this->normal;
+        } else {
+            return -this->normal;
+        }
     }
 
     std::unique_ptr<Vec3> getIntersection(const Ray& ray) {
         auto vd = normal.dot(ray.direction());
 
-        if (vd == 0) {
+        if (std::abs(vd) < 0.0001) {
             return nullptr;
         }
 
@@ -60,9 +64,6 @@ class Triangle : public Object {
         if (t < 0) {
             return nullptr;
         }
-        // if (vd > 0) {
-        //     normal = -normal;
-        // }
         auto intersection = ray.origin() + (ray.direction() * t);
 
         auto edge0 = points[1] - points[0];
@@ -73,9 +74,12 @@ class Triangle : public Object {
         auto c1 = intersection - points[1];
         auto c2 = intersection - points[2];
 
-        if (normal.dot(edge0.cross(c0)) > 0 &&
-            normal.dot(edge1.cross(c1)) > 0 &&
-            normal.dot(edge2.cross(c2)) > 0) {
+        if ((normal.dot(edge0.cross(c0)) > 0 &&
+             normal.dot(edge1.cross(c1)) > 0 &&
+             normal.dot(edge2.cross(c2)) > 0) ||
+            (normal.dot(edge0.cross(c0)) < 0 &&
+             normal.dot(edge1.cross(c1)) < 0 &&
+             normal.dot(edge2.cross(c2)) < 0)) {
             return std::make_unique<Vec3>(intersection);
         }
         return nullptr;
@@ -99,7 +103,7 @@ class Sphere : public Object {
         this->refl = refl;
     }
 
-    Vec3 surface_normal(const Vec3& point_on_sphere) {
+    Vec3 surface_normal(const Vec3& point_on_sphere, const Vec3& direction) {
         auto norm = point_on_sphere - center;
         return norm.normalized();
     }
