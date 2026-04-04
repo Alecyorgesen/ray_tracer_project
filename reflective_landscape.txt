@@ -1,101 +1,248 @@
 CameraLookAt 0 0 0
-CameraLookFrom 0 0 1
+CameraLookFrom 0 1 2
 CameraLookUp 0 1 0
 FieldOfView 90
 
 DirectionToLight 1.0 0.0 0.0
-LightColor 1.0 1.0 1.0
+LightColor 0.1 0.1 0.1
 AmbientLight 0.1 0.1 0.1
 BackgroundColor 0.2 0.2 0.2
 
-# PointLight yellow strong
+# Main PointLight
 PointLight
   Position 0.0 3.0 0.0
-  Color 0.7 0.7 0.0
+  Color 1.0 1.0 0.7
 
-# white sphere
+# White reflective sphere left middle
 Sphere
-  Center 0.5 0.0 -0.15
-  Radius 0.05
-  Kd 0.8
-  Ks 0.1
-  Ka 0.3
-  Od 1.0, 1.0, 1.0
-  Os 1.0, 1.0, 1.0
-  Kgls 4.0
-  Refl 0.0
-
-# red sphere
-Sphere
-  Center 0.3 0.0 -0.1
-  Radius 0.08
-  Kd 0.8
-  Ks 0.8
+  Center -2.0 0.0 -4.0
+  Radius 1.0
+  Kd 0.1
+  Ks 0.7
   Ka 0.1
-  Od 1.0 0.0 0.0
+  Od 1.0 1.0 1.0
   Os 0.5 1.0 0.5
-  Kgls 32.0
-  Refl 0.0
+  Kgls 4.0
+  Refl 0.3
 
-# green sphere
+# White reflective sphere left
 Sphere
-  Center -0.6 0.0 0.0
-  Radius .3
-  Kd 0.7
-  Ks 0.5
+  Center -3.0 -0.3 -2.5
+  Radius 0.7
+  Kd 0.4
+  Ks 0.7
   Ka 0.1
-  Od 0.0 1.0 0.0
+  Od 1.0 1.0 1.0
+  Os 0.5 1.0 0.5
+  Kgls 4.0
+  Refl 0.5
+
+# White reflective sphere right
+Sphere
+  Center 1.5 0.0 -3.5
+  Radius 1.0
+  Kd 0.3
+  Ks 0.7
+  Ka 0.1
+  Od 1.0 1.0 1.0
+  Os 0.5 1.0 0.5
+  Kgls 4.0
+  Refl 0.3
+
+# Small sphere 1
+Sphere
+  Center 1.2 -0.85 -1.3
+  Radius 0.15
+  Kd 0.4
+  Ks 0.7
+  Ka 0.1
+  Od 1.0 1.0 1.0
+  Os 0.5 1.0 0.5
+  Kgls 4.0
+  Refl 0.5
+
+# Small sphere 2
+Sphere
+  Center 0.5 -0.85 -1.5
+  Radius 0.15
+  Kd 0.5
+  Ks 0.6
+  Ka 0.2
+  Od 1.0 1.0 1.0
   Os 0.5 1.0 0.5
   Kgls 64.0
-  Refl 0.0
+  Refl 0.3
 
-# reflective sphere
+# Small sphere 3
 Sphere
-  Center 0.1 -0.55 0.25
-  Radius 0.3
-  Kd 0.0
-  Ks 0.1
-  Ka 0.1
-  Od 0.75 0.75 0.75
-  Os 1.0 1.0 1.0
-  Kgls 10.0
-  Refl 0.9
+  Center 0.6 -0.85 -0.7
+  Radius 0.15
+  Kd 0.6
+  Ks 0.5
+  Ka 0.2
+  Od 1.0 0.5 0.5
+  Os 0.5 1.0 0.5
+  Kgls 64.0
+  Refl 0.2
 
-# blue triangle
+# Small sphere 4
+Sphere
+  Center -1.8 -0.85 -2.2
+  Radius 0.15
+  Kd 0.4
+  Ks 0.7
+  Ka 0.1
+  Od 0.5 0.5 1.0
+  Os 0.5 1.0 0.5
+  Kgls 4.0
+  Refl 0.5
+
+# Small sphere 5
+Sphere
+  Center -2.1 -0.85 -2.5
+  Radius 0.15
+  Kd 0.4
+  Ks 0.7
+  Ka 0.1
+  Od 0.5 1.0 1.0
+  Os 0.5 1.0 0.5
+  Kgls 4.0
+  Refl 0.5
+
+  # Small sphere 5
+Sphere
+  Center -2.2 -0.85 -1.8
+  Radius 0.15
+  Kd 0.4
+  Ks 0.7
+  Ka 0.1
+  Od 1.0 1.0 0.5
+  Os 0.5 1.0 0.5
+  Kgls 4.0
+  Refl 0.5
+
+# Sphere behind 1
+Sphere
+  Center 1.5 0.0 3.5
+  Radius 1.0
+  Kd 0.5
+  Ks 0.7
+  Ka 0.1
+  Od 1.0 1.0 0.8
+  Os 0.5 1.0 0.5
+  Kgls 4.0
+  Refl 0.3
+
+# Sphere behind 2
+Sphere
+  Center 0.5 0.0 5.5
+  Radius 1.0
+  Kd 0.5
+  Ks 0.7
+  Ka 0.1
+  Od 1.0 0.3 0.4
+  Os 0.5 1.0 0.5
+  Kgls 16.0
+  Refl 0.3
+
+# Sphere behind 3
+Sphere
+  Center -2.5 0.0 10
+  Radius 1.0
+  Kd 0.8
+  Ks 0.7
+  Ka 0.3
+  Od 0.5 0.1 0.4
+  Os 0.5 1.0 0.5
+  Kgls 16.0
+  Refl 0.2
+
+# Sphere behind 4
+Sphere
+  Center -10 0.0 10
+  Radius 1.0
+  Kd 0.8
+  Ks 0.7
+  Ka 0.3
+  Od 0.1 0.3 0.9
+  Os 0.5 1.0 0.5
+  Kgls 16.0
+  Refl 0.2
+
+# reflective back wall blue
 Triangle
-  0.7 0.3 -0.1
-  0.4 -0.3 0.2
-  0.10 -0.3 -0.4
-  Kd 0.9
-  Ks 0.9
+  0.0 50.0 -5.0
+  -100.0 -50.0 -5.0
+  100.0 -50.0 -5.0
+  Kd 0.4
+  Ks 0.5
   Ka 0.1
   Od 0.0 0.0 1.0
   Os 1.0 1.0 1.0
-  Kgls 32.0
-  Refl 0.0
-
-# yellow triangle
-Triangle
-  -0.2 -0.5 0.2
-  -0.2 0.1 0.1
-  -0.2 0.1 -0.3
-  Kd 0.9
-  Ks 0.5
-  Ka 0.1
-  Od 1.0 1.0 0.0
-  Os 1.0 1.0 1.0
-  Kgls 4.0
-  Refl 0.0
-
-# reflective triangle
-Triangle
-  0.0 50.0 -2.1
-  -100.0 -50.0 -2.0
-  100.0 -50.0 -1.9
-  Kd 0.0
-  Ks 0.5
-  Ka 0.1
-  Od 0.5 0.4 0.7
-  Os 1.0 1.0 1.0
   Kgls 16.0
   Refl 0.8
+
+# reflective floor
+Triangle
+  0.0 -1.0 100.0
+  100.0 -1.0 -100.0
+  -100.0 -1.0 -100.0
+  Kd 0.4
+  Ks 0.5
+  Ka 0.1
+  Od 0.5 1.0 0.5
+  Os 1.0 1.0 1.0
+  Kgls 16.0
+  Refl 0.3
+
+# Wall
+Triangle
+  1.0 -1.0 -1.0
+  1.0 -0.5 -1.0
+  0.5 -1.0 -1.2
+  Kd 0.7
+  Ks 0.2
+  Ka 0.1
+  Od 0.7 0.3 0.0
+  Os 1.0 1.0 1.0
+  Kgls 2.0
+  Refl 0.1
+
+# Wall 2
+Triangle
+  0.5 -0.5 -1.2
+  1.0 -0.5 -1.0
+  0.5 -1.0 -1.2
+  Kd 0.7
+  Ks 0.2
+  Ka 0.1
+  Od 0.7 0.3 0.0
+  Os 1.0 1.0 1.0
+  Kgls 2.0
+  Refl 0.1
+
+# Wall 3
+Triangle
+  0.5 -0.5 -1.2
+  0.2 -1.0 -0.6
+  0.5 -1.0 -1.2
+  Kd 0.7
+  Ks 0.2
+  Ka 0.1
+  Od 0.7 0.3 0.0
+  Os 1.0 1.0 1.0
+  Kgls 2.0
+  Refl 0.1
+
+  # Wall 4
+Triangle
+  0.5 -0.5 -1.2
+  0.2 -1.0 -0.6
+  0.2 -0.5 -0.6
+  Kd 0.7
+  Ks 0.2
+  Ka 0.1
+  Od 0.7 0.3 0.0
+  Os 1.0 1.0 1.0
+  Kgls 2.0
+  Refl 0.1

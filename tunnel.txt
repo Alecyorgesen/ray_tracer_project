@@ -1,0 +1,119 @@
+CameraLookAt 0 0 0
+CameraLookFrom 0 0 1
+CameraLookUp 0 1 0
+FieldOfView 60
+
+DirectionToLight 1.0 0.0 0.0
+LightColor 0.1 0.1 0.1
+AmbientLight 0.1 0.1 0.1
+BackgroundColor 0.2 0.2 0.2
+
+# Main PointLight
+PointLight
+  Position 0.0 0.0 -1000.0
+  Color 1.0 1.0 1.0
+
+# Second PointLight
+PointLight
+  Position 0.0 0.0 3.0
+  Color 0.5 0.5 0.5
+
+# White reflective sphere left
+Sphere
+  Center -1.0 0.0 -50.0
+  Radius 1.0
+  Kd 0.2
+  Ks 0.7
+  Ka 0.1
+  Od 1.0 1.0 1.0
+  Os 1.0 1.0 1.0
+  Kgls 4.0
+  Refl 0.3
+
+  # White reflective sphere right
+Sphere
+  Center 1.0 0.0 -50.0
+  Radius 1.0
+  Kd 0.2
+  Ks 0.7
+  Ka 0.1
+  Od 1.0 1.0 1.0
+  Os 1.0 1.0 1.0
+  Kgls 4.0
+  Refl 0.3
+# 
+# # White reflective sphere left
+# Sphere
+#   Center -3.0 -0.3 -2.5
+#   Radius 0.7
+#   Kd 0.4
+#   Ks 0.7
+#   Ka 0.1
+#   Od 1.0 1.0 1.0
+#   Os 0.5 1.0 0.5
+#   Kgls 4.0
+#   Refl 0.5
+# 
+# # White reflective sphere right middle
+# Sphere
+#   Center 1.5 0.0 -3.5
+#   Radius 1.0
+#   Kd 0.1
+#   Ks 0.5
+#   Ka 0.1
+#   Od 1.0 1.0 1.0
+#   Os 1.0 1.0 1.0
+#   Kgls 16.0
+#   Refl 0.01
+
+# reflective cieling
+Triangle
+  0.0 5.0 5.0
+  -1000.0 5.0 -1000.0
+  1000.0 5.0 -1000.0
+  Kd 0.1
+  Ks 0.5
+  Ka 0.1
+  Od 1.0 1.0 1.0
+  Os 1.0 1.0 1.0
+  Kgls 16.0
+  Refl 0.1
+
+# reflective floor
+Triangle
+  0.0 -5.0 5.0
+  -1000.0 -5.0 -1000.0
+  1000.0 -5.0 -1000.0
+  Kd 0.1
+  Ks 0.5
+  Ka 0.1
+  Od 1.0 1.0 1.0
+  Os 1.0 1.0 1.0
+  Kgls 16.0
+  Refl 0.1
+
+# reflective right wall
+Triangle
+ 5.0 0.0 5.0
+  5.0 -1000.0 -1000.0
+  5.0 1000.0 -1000.0
+  Kd 0.1
+  Ks 0.5
+  Ka 0.1
+  Od 1.0 1.0 1.0
+  Os 1.0 1.0 1.0
+  Kgls 16.0
+  Refl 0.1
+
+# reflective left wall
+Triangle
+  -5.0 0.0 5.0
+  -5.0 -1000.0 -1000.0
+  -5.0 1000.0 -1000.0
+  Kd 0.1
+  Ks 0.5
+  Ka 0.1
+  Od 1.0 1.0 1.0
+  Os 1.0 1.0 1.0
+  Kgls 16.0
+  Refl 0.1

@@ -301,7 +301,7 @@ int main(int argc, char* argv[]) {
             auto ray_direction = pixel_center - lookFrom;
             Ray ray(lookFrom, ray_direction);
 
-            Color pixelColor = getIllumination(ray, ambientLight, backgroundColor, 10);
+            Color pixelColor = getIllumination(ray, ambientLight, backgroundColor, 50);
             Color pixelColorClamped = pixelColor.clamp(0, 1);
             print_color(outFile, pixelColorClamped);
         }
